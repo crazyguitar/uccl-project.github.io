@@ -12,12 +12,12 @@ tags:
   - NCCL
   - NVSHMEM
   - Monitoring
-pubDate: 2026-06-13
+pubDate: 2026-06-15
 cover: /rdma-monitoring/rdma-monitoring.png
 coverAlt: rdmatop
 author: UCCL Team
 ---
-**By: Chang-Ning Tsai and the UCCL Team -- June 13, 2026**
+**By: Chang-Ning Tsai and the UCCL Team -- June 15, 2026**
 
 <div class="tldr">
 <p>
@@ -32,6 +32,24 @@ If you run InfiniBand fabrics, you have probably used [`ibtop`](https://github.c
 The trouble is that the RDMA world is no longer just InfiniBand. GPU clusters today run RDMA over an expanding set of providers—NVIDIA/Mellanox ConnectX (RoCE and InfiniBand), AWS EFA, Broadcom Thor/`bnxt`, AMD Pensando/Pollara—each with its own NIC, counter definitions, and quirks. An InfiniBand-only tool like `ibtop` cannot see any of these, and writing a separate monitor per vendor does not scale. What practitioners actually need is a **provider-agnostic** view of RDMA traffic.
 
 That is exactly what `rdmatop` provides. Instead of per-vendor counters, it reads **RDMA netlink**—the same interface behind the `rdma statistic` command—so it works on any Linux RDMA device, and it maps queue pairs (QPs) back to the processes that own them. The result is a live terminal dashboard of per-device throughput (Gb/s, packets/s, drops), RDMA read/write counters, retransmissions, and—crucially—**which process is driving each device**. That per-NIC, per-process, Tx-vs-Rx visibility is what turns "the job is slow" into "GPU 0's traffic is all landing on a single NIC."
+
+## Installation
+
+`rdmatop` is a single static binary with no daemon and no cluster to stand up—you can have it running in under a minute. On Ubuntu, install it from our PPA:
+
+```bash
+sudo add-apt-repository ppa:crazyguitar/rdmatop
+sudo apt update
+sudo apt install rdmatop
+```
+
+Or, on any platform with a Rust toolchain, install it straight from crates.io:
+
+```bash
+cargo install rdmatop
+```
+
+Then run `rdmatop` on any node with RDMA devices and the live per-NIC view comes up right away. The case studies below are the kind of problem it makes obvious at a glance.
 
 ## Case Study 1: AWS Already Has an EFA Exporter—So Why a TUI?
 
